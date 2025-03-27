@@ -31,12 +31,12 @@ The MCP Server for OCI Resources is a Python-based server that allows you to cre
 
 2. Run the container:
    ```bash
-    docker run -i --rm \
-  -e OCI_PROFILE=DEFAULT \
-  -e OCI_CONFIG_FILE=/root/.oci/config \
-  -v /path/to/your/.oci/config:/root/.oci/config \
-  -v /path/to/your/.oci/private_key.pem:/root/.oci/private_key.pem \
-  mcp-server-oci-resources:latest
+   docker run -i --rm \
+     -e OCI_PROFILE=DEFAULT \
+     -e OCI_CONFIG_FILE=/root/.oci/config \
+     -v /path/to/your/.oci/config:/root/.oci/config \
+     -v /path/to/your/.oci/private_key.pem:/root/.oci/private_key.pem \
+     mcp-server-oci-resources:latest
    ```
 
 For additional Docker commands and usage, refer to the `commands` file in the project directory.

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-server-oci-resources"
+version = "0.1.0"
+description = "MCP server for OCI resources using oci python sdk"
+requires-python = ">=3.10"
+dependencies = [
+    "oci",
+    "mcp",
+    "pydantic",
+    "pytz"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_server_oci_resources"]

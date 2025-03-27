@@ -1,0 +1,28 @@
+# Ignore OCI configuration files
+.oci/config
+.oci/*.pem
+
+# Python-related files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Environment files
+.env
+*.env
+
+# Docker-related files
+*.log
+docker-compose.override.yml
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+oci_config
+oci_key.pem
+

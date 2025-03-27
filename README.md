@@ -86,9 +86,9 @@ To integrate this server with your system, add the following configuration to yo
         "-e",
         "OCI_CONFIG_FILE=/root/.oci/config",
         "-v",
-        "/Users/bantwal/.oci/config:/root/.oci/config",
+        "/path/to/.oci/config:/root/.oci/config",
         "-v",
-        "/Users/bantwal/.oci/hpai.bantwal@me.com_2024-09-25T19_55_49.831Z.pem:/root/.oci/hpai.bantwal@me.com_2024-09-25T19_55_49.831Z.pem",
+        "/path/to/.oci/private_key.pem:/root/.oci/private_key.pem",
         "mcp-server-oci-resources:latest"
       ]
     }

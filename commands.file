@@ -6,10 +6,8 @@ docker build -t mcp-server-oci-resources:latest .
 docker run -i --rm \                             
   -e OCI_PROFILE=DEFAULT \
   -e OCI_CONFIG_FILE=/root/.oci/config \
-  -v /Users/bantwal/.oci/config:/root/.oci/config \
-  -v /Users/bantwal/.oci/hpai.bantwal@me.com_2024-09-25T19_55_49.831Z.pem:/root/.oci/hpai.bantwal@me.com_2024-09-25T19_55_49.831Z.pem \
+  -v /Users/name/.oci/config:/root/.oci/config \
+  -v /Users/name/.oci/file.pem:/root/.oci/file.pem \
   mcp-server-oci-resources:latest
 
 pick the configuration from /root/.oci/config for authentication
-
-

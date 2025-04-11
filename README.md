@@ -16,7 +16,7 @@ The MCP Server for OCI Resources is a Python-based server that allows you to cre
 ## Requirements
 
 - Python 3.10 or higher
-- Docker (optional, for containerized deployment)
+- Docker 
 
 ---
 
@@ -68,7 +68,7 @@ For additional Docker commands and usage, refer to the `commands` file in the pr
 
 ## Usage
 
-The server exposes endpoints to create and delete OCI resources. You can interact with the server using HTTP requests. Refer to the API documentation (if available) for details on the endpoints and request/response formats.
+The server exposes endpoints to create and delete OCI resources.  Refer to the MCP documentation (if available) for details on the endpoints and request/response formats.
 
 To integrate this server with your system, add the following configuration to your `claude_config.json` file (or a similar configuration file for other LLM host applications):
 

@@ -82,7 +82,7 @@ class OCIResourceQuerier:
             executor.visit(tree)
 
             allowed_modules = {
-                'oci', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time'
+                'oci', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time', 'sys', 'base64'
             }
             unauthorized_imports = executor.imported_modules - allowed_modules
             if unauthorized_imports:

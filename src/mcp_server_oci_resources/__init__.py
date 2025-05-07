@@ -4,7 +4,7 @@ import logging
 from . import server
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('mcp_policloud_agent_oci')
+logger = logging.getLogger('mcp_syntropAI_agent_oci')
 
 def main():
     logger.debug("Starting mcp-server-OCI main()")

@@ -109,7 +109,3 @@ To contribute to this project:
 3. Submit a pull request for review.
 
 ---
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.

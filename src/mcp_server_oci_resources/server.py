@@ -1,7 +1,7 @@
 import argparse
 import json
 import logging
-import ast
+
 import os
 from typing import Any
 from pydantic import AnyUrl
@@ -12,11 +12,11 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 from operator import itemgetter
-from syntropaibox.mcp.sandbox import CodeExecutor,create_safe_builtins
-from syntropaibox.mcp.base import BaseQuerier
+
+from syntropaibox.mcp.base import BaseQuerier, DEFAULT_ALLOWED_MODULES, BaseSession
+
 
 logger = logging.getLogger("mcp_oci_resources_server")
-
 
 def parse_arguments() -> argparse.Namespace:
     """Use argparse to allow values to be set as CLI switches
@@ -36,23 +36,67 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+from syntropaibox.mcp.base import BaseSession
+
+class OCISession(BaseSession):
+    def __init__(self, config: dict):
+        self.config = config
+
+    @classmethod
+    def configure_parser(cls, parser: argparse.ArgumentParser):
+        parser.add_argument(
+            '--config-file',
+            default=os.environ.get('OCI_CONFIG_FILE', os.path.expanduser("~/.oci/config"))
+        )
+        parser.add_argument(
+            '--profile',
+            default=os.environ.get('OCI_PROFILE', 'DEFAULT')
+        )
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> "OCISession":
+        config = oci.config.from_file(args.config_file, args.profile)
+        return cls(config)
+
+
 class OCIResourceQuerier(BaseQuerier):
     def __init__(self):
-        args = parse_arguments()
-        self.config = oci.config.from_file(args.config_file, args.profile)
+        parser = argparse.ArgumentParser()
+        OCISession.configure_parser(parser)
+        args = parser.parse_args()
 
-        
+        session = OCISession.from_args(args)
+
         namespace = {
             "oci": oci,
-            "config": self.config,
-            "itemgetter": itemgetter,
-            "result": None
+            "config": session.config,
         }
-        allowed_modules = {
-            "oci", "operator", "json", "datetime", "pytz",
-            "dateutil", "re", "time", "sys", "base64", "pydantic", "pandas"
-        }
-        super().__init__(allowed_modules, namespace)
+
+        allowed_module_prefixes = ("oci",)
+        custom_modules = DEFAULT_ALLOWED_MODULES
+
+        super().__init__(allowed_module_prefixes, custom_modules, namespace)
+
+
+# class OCIResourceQuerier(BaseQuerier):
+#     def __init__(self):
+#         args = parse_arguments()
+#         self.config = oci.config.from_file(args.config_file, args.profile)
+        
+#         namespace = {
+#             "oci": oci,
+#             "config": self.config,
+#             "itemgetter": itemgetter,
+#             "result": None
+#         }
+
+#         allowed_module_prefixes = ('oci')
+        
+#         allowed_modules = {
+#             "operator", "json", "datetime", "pytz",
+#             "dateutil", "re", "time", "sys", "base64", "pydantic", "pandas"
+#         }
+#         super().__init__(allowed_module_prefixes, allowed_modules, namespace)
 
 
 async def main():
@@ -83,46 +127,64 @@ async def main():
             return json.dumps({"message": "Please use the read_create_update_oci_resources tool to execute specific queries"})
         else:
             raise ValueError(f"Unknown resource path: {path}")
-
     @server.list_tools()
     async def handle_list_tools() -> list[types.Tool]:
         return [
             types.Tool(
                 name="read_create_update_oci_resources",
-                description="Execute a code snippet using OCI Python SDK to query resources",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "code_snippet": {
-                            "type": "string",
-                            "description": (
-                                "Python code using OCI SDK to query resources. "
-                                "The code must assign the result to a variable named 'result'."
-                            ),
-                        }
-                    },
-                    "required": ["code_snippet"]
-                },
+                description="Execute a oci python code snippet to query OCI resources",
+                inputSchema=oci_querier.build_code_snippet_schema("oci sdk to query OCI resources")
             )
         ]
 
+    # @server.list_tools()
+    # async def handle_list_tools() -> list[types.Tool]:
+    #     return [
+    #         types.Tool(
+    #             name="read_create_update_oci_resources",
+    #             description="Execute a code snippet using OCI Python SDK to query resources",
+    #             inputSchema={
+    #                 "type": "object",
+    #                 "properties": {
+    #                     "code_snippet": {
+    #                         "type": "string",
+    #                         "description": (
+    #                             "Python code using OCI SDK to query resources. "
+    #                             "The code must assign the result to a variable named 'result'."
+    #                         ),
+    #                     }
+    #                 },
+    #                 "required": ["code_snippet"]
+    #             },
+    #         )
+    #     ]
     @server.call_tool()
-    async def handle_call_tool(
-        name: str, arguments: dict[str, Any] | None
-    ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-        """Handle tool execution requests"""
-        try:
-            if name == "read_create_update_oci_resources":
-                if not arguments or "code_snippet" not in arguments:
-                    raise ValueError("Missing code_snippet argument")
+    async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> list[types.TextContent]:
+        
+        if name == "read_create_update_oci_resources":
+            result_str = oci_querier.run_code_tool(arguments)
+            return [types.TextContent(type="text", text=result_str)]
+        else:
+            raise ValueError(f"Unknown tool: {name}")
 
-                results = oci_querier.execute_query(arguments["code_snippet"])
-                return [types.TextContent(type="text", text=str(results))]
-            else:
-                raise ValueError(f"Unknown tool: {name}")
 
-        except Exception as e:
-            return [types.TextContent(type="text", text=f"Error: {str(e)}")]
+    # @server.call_tool()
+    # async def handle_call_tool(
+    #     name: str, arguments: dict[str, Any] | None
+    # ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+    #     """Handle tool execution requests"""
+    #     try:
+    #         if name == "read_create_update_oci_resources":
+    #             if not arguments or "code_snippet" not in arguments:
+    #                 raise ValueError("Missing code_snippet argument")
+
+    #             results = oci_querier.execute_query(arguments["code_snippet"])
+    #             return [types.TextContent(type="text", text=str(results))]
+    #         else:
+    #             raise ValueError(f"Unknown tool: {name}")
+
+    #     except Exception as e:
+    #         return [types.TextContent(type="text", text=f"Error: {str(e)}")]
 
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await server.run(

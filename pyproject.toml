@@ -12,7 +12,7 @@ dependencies = [
     "mcp",
     "pydantic",
     "pytz",
-    "syntropaibox"
+    "syntropaibox>=0.1.11"
 ]
 
 [tool.hatch.build.targets.wheel]
